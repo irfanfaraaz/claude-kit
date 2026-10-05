@@ -1,0 +1,1 @@
+{ "name": "rm-to-trash", "version": "0.1.0", "description": "Rewrites rm into macOS trash so deletes are recoverable and stop hitting the rm deny rule" }

@@ -1,0 +1,532 @@
+<style>
+  /* ==========================================================================
+     Deep Dive widget — fill every [PLACEHOLDER], change nothing else.
+     Self-contained: no external fonts, scripts, or images.
+     Theme-aware: reads the viewer's light/dark preference.
+     ========================================================================== */
+
+  .sfa {
+    --bg: #ffffff;
+    --panel: #f7f8fa;
+    --border: #e3e6ea;
+    --text: #14171a;
+    --muted: #626b75;
+    --accent: #1b6ef3;
+    --good: #17794a;
+    --good-bg: #e6f4ec;
+    --warn: #8a5a00;
+    --warn-bg: #fdf1dc;
+    --risk: #a32626;
+    --risk-bg: #fceaea;
+    --flag: #7a3ea1;
+    --flag-bg: #f3ebfa;
+
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.55;
+    font-size: 15px;
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .sfa {
+      --bg: #14171a; --panel: #1c2126; --border: #2b3238; --text: #e9edf1;
+      --muted: #9aa5b1; --accent: #5c9bff;
+      --good: #5fd39a; --good-bg: #163024;
+      --warn: #e5b567; --warn-bg: #33280f;
+      --risk: #ff8c8c; --risk-bg: #351a1a;
+      --flag: #c79bec; --flag-bg: #2b1f38;
+    }
+  }
+  :root[data-theme="dark"] .sfa {
+    --bg: #14171a; --panel: #1c2126; --border: #2b3238; --text: #e9edf1;
+    --muted: #9aa5b1; --accent: #5c9bff;
+    --good: #5fd39a; --good-bg: #163024;
+    --warn: #e5b567; --warn-bg: #33280f;
+    --risk: #ff8c8c; --risk-bg: #351a1a;
+    --flag: #c79bec; --flag-bg: #2b1f38;
+  }
+  :root[data-theme="light"] .sfa {
+    --bg: #ffffff; --panel: #f7f8fa; --border: #e3e6ea; --text: #14171a;
+    --muted: #626b75; --accent: #1b6ef3;
+    --good: #17794a; --good-bg: #e6f4ec;
+    --warn: #8a5a00; --warn-bg: #fdf1dc;
+    --risk: #a32626; --risk-bg: #fceaea;
+    --flag: #7a3ea1; --flag-bg: #f3ebfa;
+  }
+
+  .sfa * { box-sizing: border-box; }
+
+  /* ---------- header ---------- */
+  .sfa-head { border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 4px; }
+  .sfa-name { font-size: 25px; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
+  .sfa-sub { color: var(--muted); font-size: 13.5px; margin-top: 3px; }
+  .sfa-price { display: flex; align-items: baseline; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .sfa-cmp { font-size: 27px; font-weight: 700; letter-spacing: -0.02em; }
+  .sfa-range { color: var(--muted); font-size: 13px; }
+
+  /* ---------- tabs ---------- */
+  .sfa-tabs {
+    display: flex; gap: 2px; overflow-x: auto; margin: 16px 0 0;
+    border-bottom: 1px solid var(--border); scrollbar-width: thin;
+  }
+  .sfa-tab {
+    appearance: none; border: 0; background: transparent; color: var(--muted);
+    font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer;
+    padding: 9px 13px; white-space: nowrap; border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: color .12s;
+  }
+  .sfa-tab:hover { color: var(--text); }
+  .sfa-tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .sfa-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 4px; }
+
+  .sfa-panel { display: none; padding-top: 18px; }
+  .sfa-panel.is-active { display: block; }
+  .sfa-panel h3 { font-size: 15px; margin: 22px 0 8px; letter-spacing: -0.01em; }
+  .sfa-panel h3:first-child { margin-top: 0; }
+  .sfa-panel p { margin: 0 0 10px; }
+
+  /* ---------- metric grid ---------- */
+  .sfa-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+    gap: 10px; margin-bottom: 6px;
+  }
+  .sfa-cell {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 9px; padding: 11px 13px;
+  }
+  .sfa-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .05em; color: var(--muted);
+  }
+  .sfa-val { font-size: 19px; font-weight: 700; margin-top: 3px; letter-spacing: -0.01em; }
+  .sfa-note { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* ---------- tables ---------- */
+  .sfa-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 12px; }
+  .sfa-table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 460px; }
+  .sfa-table th, .sfa-table td {
+    text-align: left; padding: 8px 11px; border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .sfa-table th {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--muted); font-weight: 600; white-space: nowrap;
+  }
+  .sfa-table td:first-child { font-weight: 600; white-space: nowrap; }
+  .sfa-table tr:last-child td { border-bottom: 0; }
+
+  /* ---------- verdict pills ---------- */
+  .pill {
+    display: inline-block; font-size: 11.5px; font-weight: 700; padding: 1px 8px;
+    border-radius: 999px; letter-spacing: .01em; white-space: nowrap;
+  }
+  .pill.good { color: var(--good); background: var(--good-bg); }
+  .pill.warn { color: var(--warn); background: var(--warn-bg); }
+  .pill.risk { color: var(--risk); background: var(--risk-bg); }
+  .pill.flag { color: var(--flag); background: var(--flag-bg); }
+
+  /* ---------- lists ---------- */
+  .sfa-list { list-style: none; padding: 0; margin: 0 0 12px; }
+  .sfa-list li {
+    padding: 7px 0 7px 22px; position: relative;
+    border-bottom: 1px solid var(--border); font-size: 14px;
+  }
+  .sfa-list li:last-child { border-bottom: 0; }
+  .sfa-list li::before {
+    content: ""; position: absolute; left: 6px; top: 15px;
+    width: 5px; height: 5px; border-radius: 50%; background: var(--muted);
+  }
+  .sfa-list.good li::before { background: var(--good); }
+  .sfa-list.warn li::before { background: var(--warn); }
+
+  /* ---------- callouts ---------- */
+  .sfa-box {
+    background: var(--panel); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent); border-radius: 8px;
+    padding: 12px 14px; margin: 12px 0; font-size: 14px;
+  }
+  .sfa-box .sfa-label { margin-bottom: 4px; }
+
+  .sfa-src { font-size: 11.5px; color: var(--muted); font-weight: 400; }
+
+  /* ---------- compliance banner ---------- */
+  .sfa-halal {
+    display: flex; align-items: flex-start; gap: 11px; flex-wrap: wrap;
+    border: 1px solid var(--border); border-left: 3px solid var(--good);
+    background: var(--good-bg); border-radius: 9px;
+    padding: 11px 14px; margin-top: 14px; font-size: 13.5px;
+  }
+  /* If the stock FAILS, change the two lines above to:
+       border-left: 3px solid var(--risk);  background: var(--risk-bg);
+     If BORDERLINE / standard-dependent:
+       border-left: 3px solid var(--warn);  background: var(--warn-bg);   */
+  .sfa-halal strong { font-size: 14px; }
+  .sfa-halal .sfa-src { display: block; margin-top: 3px; }
+
+  .sfa-foot {
+    margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--muted); font-style: italic;
+  }
+  .sfa-conf { font-style: normal; margin-bottom: 8px; }
+</style>
+
+<div class="sfa">
+
+  <!-- ══════════════ HEADER ══════════════ -->
+  <div class="sfa-head">
+    <h2 class="sfa-name">[COMPANY NAME] <span class="sfa-src">· [TICKER] · [NSE|BSE|NYSE|NASDAQ]</span></h2>
+    <div class="sfa-sub">[SECTOR / INDUSTRY] · [ONE-LINE DESCRIPTION OF WHAT THE BUSINESS DOES]</div>
+    <div class="sfa-price">
+      <span class="sfa-cmp">[₹|$][PRICE]</span>
+      <span class="sfa-range">52w [₹|$][52W LOW] – [₹|$][52W HIGH] · Mkt cap [₹|$][MARKET CAP] [Cr|M|B] <span class="sfa-src">— [SOURCE]</span></span>
+    </div>
+
+    <!-- Compliance banner — always filled. Recolour via the CSS note above on a fail/borderline. -->
+    <div class="sfa-halal">
+      <span class="pill [good|warn|risk]">[Compliant|Borderline|Not compliant]</span>
+      <div>
+        <strong>[AAOIFI]</strong> — [ONE CLAUSE: THE BINDING CONSTRAINT. e.g. "passes all four tests, tightest is debt at 21.4% of a 30% limit" OR "fails activity — conventional banking".]
+        <span class="sfa-src">Screened [DATE] — [SOURCE]. Ratios move with results and share price; recheck each quarter.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ TABS ══════════════ -->
+  <div class="sfa-tabs" role="tablist">
+    <button class="sfa-tab" role="tab" aria-selected="true"  data-p="sharia">Sharia</button>
+    <button class="sfa-tab" role="tab" aria-selected="false" data-p="snapshot">Snapshot</button>
+    <button class="sfa-tab" role="tab" aria-selected="false" data-p="valuation">Valuation</button>
+    <button class="sfa-tab" role="tab" aria-selected="false" data-p="growth">Growth</button>
+    <button class="sfa-tab" role="tab" aria-selected="false" data-p="health">Health</button>
+    <button class="sfa-tab" role="tab" aria-selected="false" data-p="returns">Returns</button>
+    <button class="sfa-tab" role="tab" aria-selected="false" data-p="peers">Peers</button>
+    <button class="sfa-tab" role="tab" aria-selected="false" data-p="ownership">Ownership</button>
+    <button class="sfa-tab" role="tab" aria-selected="false" data-p="view">View</button>
+  </div>
+
+  <!-- ══════════════ 0. SHARIA ══════════════ -->
+  <div class="sfa-panel is-active" id="p-sharia" role="tabpanel">
+    <h3>Stage A — business activity</h3>
+    <p>[WHAT THE COMPANY ACTUALLY EARNS FROM, AND WHETHER ANY LINE FALLS IN AN EXCLUDED CATEGORY. IF A CONTESTED CATEGORY (DEFENCE, MEDIA, HOTELS) APPLIES, NAME THE DISAGREEMENT RATHER THAN DECIDING IT.]</p>
+    <p><span class="pill [good|risk]">[Passes|Fails] activity screen</span> <span class="sfa-src">— [SOURCE]</span></p>
+
+    <h3>Stage B — financial ratios <span class="sfa-src">(AAOIFI, market-cap basis)</span></h3>
+    <div class="sfa-scroll"><table class="sfa-table">
+      <thead><tr><th>Test</th><th>Figure</th><th>Limit</th><th>Result</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td>Interest-bearing debt ÷ market cap</td><td>[%]</td><td>&lt; 30%</td><td><span class="pill [good|risk]">[Pass|Fail]</span></td><td class="sfa-src">[SOURCE]</td></tr>
+        <tr><td>Cash + interest-bearing securities ÷ market cap</td><td>[%]</td><td>&lt; 30%</td><td><span class="pill [good|risk]">[Pass|Fail]</span></td><td class="sfa-src">[SOURCE]</td></tr>
+        <tr><td>Cash + receivables ÷ total assets</td><td>[%]</td><td>&lt; 70%</td><td><span class="pill [good|risk]">[Pass|Fail]</span></td><td class="sfa-src">[SOURCE]</td></tr>
+        <tr><td>Impermissible income ÷ total revenue</td><td>[%]</td><td>&lt; 5%</td><td><span class="pill [good|risk]">[Pass|Fail]</span></td><td class="sfa-src">[SOURCE]</td></tr>
+      </tbody>
+    </table></div>
+
+    <!-- Include this box ONLY when a ratio sits within ~3 points of its limit. Delete it otherwise. -->
+    <div class="sfa-box">
+      <div class="sfa-label">Standard-dependent</div>
+      [WHICH TEST IS CLOSE, AND WHAT MSCI / FTSE SAY ON A TOTAL-ASSETS BASIS. STATE PLAINLY IF THE VERDICT TURNS ON THE CHOICE OF STANDARD RATHER THAN ON THE BUSINESS.]
+    </div>
+
+    <h3>Purification</h3>
+    <p>The share of income from impermissible sources — usually bank interest on idle cash — has to be given away rather than kept.</p>
+    <div class="sfa-scroll"><table class="sfa-table">
+      <tr><td>Impermissible share of revenue</td><td>[%]</td></tr>
+      <tr><td>Dividend per share</td><td>[₹|$][DPS]</td></tr>
+      <tr><td>To purify per share</td><td><strong>[₹|$][AMOUNT]</strong></td></tr>
+    </table></div>
+    <p class="sfa-src">Baseline is the revenue-based dividend calculation. Some scholars extend purification to capital gains — that choice is yours.</p>
+
+    <div class="sfa-box">
+      <div class="sfa-label">Note</div>
+      This is a mechanical screen against published AAOIFI criteria, not a religious ruling. Confirm with a certified provider (Musaffa, Zoya, Islamicly) or your scholar. Screened [DATE] — recheck each quarter, since both quarterly results and the share price move these ratios.
+    </div>
+  </div>
+
+  <!-- ══════════════ 1. SNAPSHOT ══════════════ -->
+  <div class="sfa-panel" id="p-snapshot" role="tabpanel">
+    <div class="sfa-grid">
+      <div class="sfa-cell"><div class="sfa-label">P/E</div><div class="sfa-val">[P/E]</div><div class="sfa-note"><span class="pill [good|warn|risk]">[Cheap|Fair|Expensive]</span> vs sector [SECTOR P/E]</div></div>
+      <div class="sfa-cell"><div class="sfa-label">ROE</div><div class="sfa-val">[ROE]%</div><div class="sfa-note"><span class="pill [good|warn|risk]">[Good|Average|Weak]</span></div></div>
+      <div class="sfa-cell"><div class="sfa-label">ROCE</div><div class="sfa-val">[ROCE]%</div><div class="sfa-note"><span class="pill [good|warn|risk]">[Good|Average|Weak]</span></div></div>
+      <div class="sfa-cell"><div class="sfa-label">Debt / Equity</div><div class="sfa-val">[D/E]</div><div class="sfa-note"><span class="pill [good|warn|risk]">[Safe|Moderate|Leveraged]</span></div></div>
+      <div class="sfa-cell"><div class="sfa-label">Revenue CAGR (5y)</div><div class="sfa-val">[REV CAGR]%</div><div class="sfa-note">[Accelerating|Steady|Slowing|Declining]</div></div>
+      <div class="sfa-cell"><div class="sfa-label">Dividend yield</div><div class="sfa-val">[YIELD]%</div><div class="sfa-note">payout [PAYOUT]%</div></div>
+    </div>
+    <div class="sfa-box">
+      <div class="sfa-label">In one paragraph</div>
+      [2–3 SENTENCES: WHAT THE BUSINESS DOES, HOW IT MAKES MONEY, AND THE SINGLE MOST IMPORTANT THING A LONG-TERM HOLDER SHOULD UNDERSTAND ABOUT IT.]
+    </div>
+    <h3>Basics</h3>
+    <div class="sfa-scroll"><table class="sfa-table">
+      <tr><td>Market cap</td><td>[₹|$][MARKET CAP] [Cr|M|B] · [Large|Mid|Small] cap <span class="sfa-src">— [SOURCE]</span></td></tr>
+      <tr><td>Book value / share</td><td>[₹|$][BOOK VALUE] <span class="sfa-src">— [SOURCE]</span></td></tr>
+      <!-- India only — delete this row for US stocks -->
+      <tr><td>Face value</td><td>₹[FACE VALUE] <span class="sfa-src">— [SOURCE]</span></td></tr>
+      <!-- US only — delete this row for Indian stocks -->
+      <tr><td>Fiscal year end</td><td>[MONTH] <span class="sfa-src">— [SOURCE]</span></td></tr>
+    </table></div>
+  </div>
+
+  <!-- ══════════════ 2. VALUATION ══════════════ -->
+  <div class="sfa-panel" id="p-valuation" role="tabpanel">
+    <p>How the price compares to what the business earns and owns — measured against both its peers and its own history, because a stock can look cheap next to its sector while still being expensive versus how it usually trades.</p>
+    <div class="sfa-scroll"><table class="sfa-table">
+      <thead><tr><th>Metric</th><th>Current</th><th>Sector avg</th><th>Own 5-yr avg</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr><td>P/E</td><td>[P/E]</td><td>[SECTOR P/E]</td><td>[5Y AVG P/E]</td><td><span class="pill [good|warn|risk]">[Cheap|Fair|Expensive]</span></td></tr>
+        <tr><td>P/B</td><td>[P/B]</td><td>[SECTOR P/B]</td><td>[5Y AVG P/B]</td><td><span class="pill [good|warn|risk]">[Cheap|Fair|Expensive]</span></td></tr>
+        <tr><td>EV/EBITDA</td><td>[EV/EBITDA]</td><td>[SECTOR EV/EBITDA]</td><td>[5Y AVG EV/EBITDA]</td><td><span class="pill [good|warn|risk]">[Cheap|Fair|Expensive]</span></td></tr>
+      </tbody>
+    </table></div>
+    <p class="sfa-src">Source: [SOURCE]</p>
+    <div class="sfa-box">
+      <div class="sfa-label">What this means</div>
+      [2–3 SENTENCES IN PLAIN ENGLISH ON WHAT THE MARKET IS PRICING IN AND WHY THE MULTIPLES SIT WHERE THEY DO. NO TARGET PRICE, NO "ATTRACTIVE AT THESE LEVELS".]
+    </div>
+  </div>
+
+  <!-- ══════════════ 3. GROWTH ══════════════ -->
+  <div class="sfa-panel" id="p-growth" role="tabpanel">
+    <h3>Long-run growth</h3>
+    <div class="sfa-scroll"><table class="sfa-table">
+      <thead><tr><th>Metric</th><th>3-yr CAGR</th><th>5-yr CAGR</th><th>Trend</th></tr></thead>
+      <tbody>
+        <tr><td>Revenue</td><td>[3Y]%</td><td>[5Y]%</td><td>[Accelerating|Steady|Slowing|Declining]</td></tr>
+        <tr><td>Net profit</td><td>[3Y]%</td><td>[5Y]%</td><td>[Accelerating|Steady|Slowing|Declining]</td></tr>
+        <tr><td>EPS</td><td>[3Y]%</td><td>[5Y]%</td><td>[Accelerating|Steady|Slowing|Declining]</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Margins — 5-year trend</h3>
+    <div class="sfa-scroll"><table class="sfa-table">
+      <thead><tr><th>Margin</th><th>[Y-4]</th><th>[Y-3]</th><th>[Y-2]</th><th>[Y-1]</th><th>[Y0]</th><th>Direction</th></tr></thead>
+      <tbody>
+        <tr><td>EBITDA</td><td>[%]</td><td>[%]</td><td>[%]</td><td>[%]</td><td>[%]</td><td>[Expanding|Flat|Compressing]</td></tr>
+        <tr><td>Net profit</td><td>[%]</td><td>[%]</td><td>[%]</td><td>[%]</td><td>[%]</td><td>[Expanding|Flat|Compressing]</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Quarterly EPS — last 8 quarters (YoY)</h3>
+    <div class="sfa-scroll"><table class="sfa-table">
+      <thead><tr><th>Quarter</th><th>EPS [₹|$]</th><th>YoY</th></tr></thead>
+      <tbody>
+        <tr><td>[QTR 1]</td><td>[EPS]</td><td>[+/-%]</td></tr>
+        <tr><td>[QTR 2]</td><td>[EPS]</td><td>[+/-%]</td></tr>
+        <tr><td>[QTR 3]</td><td>[EPS]</td><td>[+/-%]</td></tr>
+        <tr><td>[QTR 4]</td><td>[EPS]</td><td>[+/-%]</td></tr>
+        <tr><td>[QTR 5]</td><td>[EPS]</td><td>[+/-%]</td></tr>
+        <tr><td>[QTR 6]</td><td>[EPS]</td><td>[+/-%]</td></tr>
+        <tr><td>[QTR 7]</td><td>[EPS]</td><td>[+/-%]</td></tr>
+        <tr><td>[QTR 8]</td><td>[EPS]</td><td>[+/-%]</td></tr>
+      </tbody>
+    </table></div>
+    <p class="sfa-src">Source: [SOURCE]</p>
+
+    <div class="sfa-box">
+      <div class="sfa-label">What's actually driving the headline number</div>
+      [DECOMPOSE IT. Is growth coming from volume, price, currency, or acquisitions? An exporter's rupee revenue can rise on a weaker rupee alone — give the constant-currency figure alongside the reported one when they diverge. A roll-up's growth is bought, not earned — separate organic from acquired. If the headline and the underlying number tell different stories, that difference is the most useful line in this tab.]
+    </div>
+
+    <div class="sfa-box">
+      <div class="sfa-label">If the last five years simply repeated</div>
+      [ILLUSTRATION ONLY, NOT A FORECAST: WHAT THE SAME GROWTH RATE WOULD IMPLY. LABEL IT EXPLICITLY AS AN ILLUSTRATION OF PAST TRENDS CONTINUING, AND NAME ONE THING THAT WOULD BREAK THE PATTERN.]
+    </div>
+  </div>
+
+  <!-- ══════════════ 4. HEALTH ══════════════ -->
+  <div class="sfa-panel" id="p-health" role="tabpanel">
+    <p>Whether the balance sheet can absorb a bad year. Debt is only a problem when profits stop covering the interest on it — so read these together, not one at a time.</p>
+    <div class="sfa-grid">
+      <div class="sfa-cell"><div class="sfa-label">Debt / Equity</div><div class="sfa-val">[D/E]</div><div class="sfa-note"><span class="pill [good|warn|risk]">[Safe|Moderate|Leveraged]</span></div></div>
+      <div class="sfa-cell"><div class="sfa-label">Interest coverage</div><div class="sfa-val">[X]x</div><div class="sfa-note"><span class="pill [good|warn|risk]">[Healthy|Watch|Risk]</span></div></div>
+      <div class="sfa-cell"><div class="sfa-label">Current ratio</div><div class="sfa-val">[RATIO]</div><div class="sfa-note"><span class="pill [good|warn|risk]">[Comfortable|Watch|Risk]</span></div></div>
+    </div>
+
+    <h3>Debt-to-equity — 5-year trend</h3>
+    <div class="sfa-scroll"><table class="sfa-table">
+      <thead><tr><th>[Y-4]</th><th>[Y-3]</th><th>[Y-2]</th><th>[Y-1]</th><th>[Y0]</th><th>Direction</th></tr></thead>
+      <tbody><tr><td>[D/E]</td><td>[D/E]</td><td>[D/E]</td><td>[D/E]</td><td>[D/E]</td><td>[Rising|Flat|Falling]</td></tr></tbody>
+    </table></div>
+
+    <h3>Free cash flow</h3>
+    <div class="sfa-scroll"><table class="sfa-table">
+      <thead><tr><th>Year</th><th>FCF [₹|$] [Cr|M]</th></tr></thead>
+      <tbody>
+        <tr><td>[Y-4]</td><td>[FCF]</td></tr>
+        <tr><td>[Y-3]</td><td>[FCF]</td></tr>
+        <tr><td>[Y-2]</td><td>[FCF]</td></tr>
+        <tr><td>[Y-1]</td><td>[FCF]</td></tr>
+        <tr><td>[Y0]</td><td>[FCF]</td></tr>
+      </tbody>
+    </table></div>
+    <p><span class="pill [good|warn|risk]">[Strong|Stable|Concern]</span> — [ONE LINE: IS CASH ACTUALLY ARRIVING, OR IS PROFIT STAYING ON PAPER?] <span class="sfa-src">— [SOURCE]</span></p>
+  </div>
+
+  <!-- ══════════════ 5. RETURNS ══════════════ -->
+  <div class="sfa-panel" id="p-returns" role="tabpanel">
+    <p>How efficiently the business turns capital into profit, and how much of that profit comes back to shareholders.</p>
+    <div class="sfa-scroll"><table class="sfa-table">
+      <thead><tr><th>Metric</th><th>Current</th><th>3-yr avg</th><th>5-yr avg</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr><td>ROE</td><td>[%]</td><td>[%]</td><td>[%]</td><td><span class="pill [good|warn|risk]">[Good|Average|Weak]</span></td></tr>
+        <tr><td>ROCE</td><td>[%]</td><td>[%]</td><td>[%]</td><td><span class="pill [good|warn|risk]">[Good|Average|Weak]</span></td></tr>
+      </tbody>
+    </table></div>
+    <p class="sfa-src">ROE = profit as a share of shareholders' money · ROCE = profit as a share of all capital used, including debt. Source: [SOURCE]</p>
+
+    <h3>Dividend history</h3>
+    <div class="sfa-scroll"><table class="sfa-table">
+      <thead><tr><th>Year</th><th>DPS [₹|$]</th><th>Payout %</th></tr></thead>
+      <tbody>
+        <tr><td>[Y-4]</td><td>[DPS]</td><td>[%]</td></tr>
+        <tr><td>[Y-3]</td><td>[DPS]</td><td>[%]</td></tr>
+        <tr><td>[Y-2]</td><td>[DPS]</td><td>[%]</td></tr>
+        <tr><td>[Y-1]</td><td>[DPS]</td><td>[%]</td></tr>
+        <tr><td>[Y0]</td><td>[DPS]</td><td>[%]</td></tr>
+      </tbody>
+    </table></div>
+    <p>[ONE LINE ON WHETHER THE PAYOUT IS CONSISTENT, GROWING, OR ERRATIC — AND WHETHER IT'S FUNDED BY CASH FLOW OR BY DEBT.] <span class="sfa-src">— [SOURCE]</span></p>
+  </div>
+
+  <!-- ══════════════ 6. PEERS ══════════════ -->
+  <div class="sfa-panel" id="p-peers" role="tabpanel">
+    <p>The same numbers mean different things in different industries. These are the three closest listed comparables.</p>
+    <div class="sfa-scroll"><table class="sfa-table">
+      <thead><tr><th>Company</th><th>P/E</th><th>P/B</th><th>ROE %</th><th>Rev growth %</th><th>D/E</th></tr></thead>
+      <tbody>
+        <tr><td>[THIS COMPANY]</td><td>[P/E]</td><td>[P/B]</td><td>[ROE]</td><td>[GROWTH]</td><td>[D/E]</td></tr>
+        <tr><td>[PEER 1]</td><td>[P/E]</td><td>[P/B]</td><td>[ROE]</td><td>[GROWTH]</td><td>[D/E]</td></tr>
+        <tr><td>[PEER 2]</td><td>[P/E]</td><td>[P/B]</td><td>[ROE]</td><td>[GROWTH]</td><td>[D/E]</td></tr>
+        <tr><td>[PEER 3]</td><td>[P/E]</td><td>[P/B]</td><td>[ROE]</td><td>[GROWTH]</td><td>[D/E]</td></tr>
+      </tbody>
+    </table></div>
+    <p class="sfa-src">Source: [SOURCE]</p>
+
+    <h3>Moat</h3>
+    <ul class="sfa-list">
+      <li><strong>Pricing power</strong> — [EVIDENCE]</li>
+      <li><strong>Brand</strong> — [EVIDENCE]</li>
+      <li><strong>Switching costs</strong> — [EVIDENCE]</li>
+      <li><strong>Market share</strong> — [EVIDENCE]</li>
+    </ul>
+
+    <h3>Sector context</h3>
+    <ul class="sfa-list">
+      <li><strong>Tailwinds</strong> — [WHAT'S WORKING IN THE INDUSTRY'S FAVOUR]</li>
+      <li><strong>Headwinds</strong> — [WHAT'S WORKING AGAINST IT]</li>
+      <li><strong>Regulatory</strong> — [ANY RULES OR PENDING CHANGES THAT MATTER]</li>
+    </ul>
+  </div>
+
+  <!-- ══════════════ 7. OWNERSHIP ══════════════ -->
+  <div class="sfa-panel" id="p-ownership" role="tabpanel">
+    <p>Who owns the company and whether that's been changing. Keep the block for your market and delete the other one entirely — the two markets don't share these concepts.</p>
+
+    <!-- ══ INDIA ONLY — delete this whole block for US stocks ══ -->
+    <div class="sfa-grid">
+      <div class="sfa-cell"><div class="sfa-label">Promoter holding</div><div class="sfa-val">[%]</div><div class="sfa-note">[Rising|Stable|Falling] over 8 quarters</div></div>
+      <div class="sfa-cell"><div class="sfa-label">Promoter pledging</div><div class="sfa-val">[%]</div><div class="sfa-note"><span class="pill [good|risk]">[No pledge|Pledged — flag if &gt;10%]</span></div></div>
+      <div class="sfa-cell"><div class="sfa-label">FII holding</div><div class="sfa-val">[%]</div><div class="sfa-note">[Rising|Stable|Falling]</div></div>
+      <div class="sfa-cell"><div class="sfa-label">DII holding</div><div class="sfa-val">[%]</div><div class="sfa-note">[Rising|Stable|Falling]</div></div>
+    </div>
+    <h3>Shareholding — last 8 quarters</h3>
+    <div class="sfa-scroll"><table class="sfa-table">
+      <thead><tr><th>Quarter</th><th>Promoter %</th><th>Pledged %</th><th>FII %</th><th>DII %</th></tr></thead>
+      <tbody>
+        <tr><td>[QTR 1]</td><td>[%]</td><td>[%]</td><td>[%]</td><td>[%]</td></tr>
+        <tr><td>[QTR 2]</td><td>[%]</td><td>[%]</td><td>[%]</td><td>[%]</td></tr>
+        <tr><td>[QTR 3]</td><td>[%]</td><td>[%]</td><td>[%]</td><td>[%]</td></tr>
+        <tr><td>[QTR 4]</td><td>[%]</td><td>[%]</td><td>[%]</td><td>[%]</td></tr>
+        <tr><td>[QTR 5]</td><td>[%]</td><td>[%]</td><td>[%]</td><td>[%]</td></tr>
+        <tr><td>[QTR 6]</td><td>[%]</td><td>[%]</td><td>[%]</td><td>[%]</td></tr>
+        <tr><td>[QTR 7]</td><td>[%]</td><td>[%]</td><td>[%]</td><td>[%]</td></tr>
+        <tr><td>[QTR 8]</td><td>[%]</td><td>[%]</td><td>[%]</td><td>[%]</td></tr>
+      </tbody>
+    </table></div>
+    <p class="sfa-src">Pledging above 10% is the flag — promoters borrowing against their own stock is how forced-selling spirals begin. Source: [SOURCE]</p>
+    <!-- ══ END INDIA BLOCK ══ -->
+
+    <!-- ══ US ONLY — delete this whole block for Indian stocks ══ -->
+    <div class="sfa-grid">
+      <div class="sfa-cell"><div class="sfa-label">Insider ownership</div><div class="sfa-val">[%]</div><div class="sfa-note">[CONTEXT vs sector]</div></div>
+      <div class="sfa-cell"><div class="sfa-label">Institutional ownership</div><div class="sfa-val">[%]</div><div class="sfa-note">13F, [QUARTER] — 45-day lag</div></div>
+      <div class="sfa-cell"><div class="sfa-label">Diluted share count</div><div class="sfa-val">[COUNT]M</div><div class="sfa-note"><span class="pill [good|warn|risk]">[Shrinking|Flat|Diluting]</span> over 5 yrs</div></div>
+      <div class="sfa-cell"><div class="sfa-label">Insider activity (6 mo)</div><div class="sfa-val">[Net buy|Net sell]</div><div class="sfa-note">[N] buys · [N] sells, Form 4</div></div>
+    </div>
+    <h3>Share count — 5-year trend</h3>
+    <div class="sfa-scroll"><table class="sfa-table">
+      <thead><tr><th>[FY-4]</th><th>[FY-3]</th><th>[FY-2]</th><th>[FY-1]</th><th>[FY0]</th><th>Direction</th></tr></thead>
+      <tbody><tr><td>[M]</td><td>[M]</td><td>[M]</td><td>[M]</td><td>[M]</td><td>[Shrinking|Flat|Diluting]</td></tr></tbody>
+    </table></div>
+    <p class="sfa-src">Buybacks shrink the count and flatter EPS; heavy stock-based compensation inflates it and quietly dilutes holders. Read EPS growth against this line, not on its own. Source: [SOURCE]</p>
+    <!-- ══ END US BLOCK ══ -->
+
+    <h3>Management</h3>
+    <ul class="sfa-list">
+      <li><strong>Guidance vs delivery</strong> — [HAS MANAGEMENT HIT WHAT IT SAID IT WOULD?]</li>
+      <li><strong>Governance flags</strong> — [ANY AUDITOR RESIGNATIONS, RELATED-PARTY CONCERNS, RESTATEMENTS — OR "none found"]</li>
+      <li><strong>Latest earnings call</strong> — [THE ONE THING MANAGEMENT EMPHASISED MOST RECENTLY]</li>
+    </ul>
+  </div>
+
+  <!-- ══════════════ 8. VIEW ══════════════ -->
+  <div class="sfa-panel" id="p-view" role="tabpanel">
+    <h3>What works</h3>
+    <ul class="sfa-list good">
+      <li>[STRENGTH 1 — TIED TO A SPECIFIC NUMBER OR FACT]</li>
+      <li>[STRENGTH 2 — TIED TO A SPECIFIC NUMBER OR FACT]</li>
+      <li>[STRENGTH 3 — TIED TO A SPECIFIC NUMBER OR FACT]</li>
+    </ul>
+
+    <h3>What to watch</h3>
+    <ul class="sfa-list warn">
+      <li>[WATCH-POINT 1 — SPECIFIC, NOT GENERIC "COMPETITION RISK"]</li>
+      <li>[WATCH-POINT 2 — SPECIFIC, NOT GENERIC "COMPETITION RISK"]</li>
+    </ul>
+
+    <div class="sfa-box">
+      <div class="sfa-label">One thing to track</div>
+      [THE SINGLE METRIC OR EVENT THAT WOULD MOST CHANGE THIS PICTURE, AND WHERE TO SEE IT — e.g. "EBITDA margin in the next two quarterly results; Screener updates it within days of the filing."]
+    </div>
+
+    <div class="sfa-box">
+      <div class="sfa-label">Fundamental quality</div>
+      <span class="pill [good|warn|risk]">[Strong|Moderate|Weak]</span> — [ONE SENTENCE SAYING WHY, DRAWN FROM THE TABS ABOVE.]
+    </div>
+
+    <div class="sfa-foot">
+      <div class="sfa-conf"><strong>Data confidence: [High|Moderate|Low]</strong> — [HOW MANY METRICS CAME FROM LIVE SOURCES VS UNAVAILABLE, AND WHICH SOURCES WERE USED. Data as of [DATE].]</div>
+      This is a view of the fundamentals for educational purposes — not investment advice and not a buy/sell/hold recommendation. Verify figures independently. The decision is yours.
+    </div>
+  </div>
+
+</div>
+
+<script>
+  (function () {
+    var root = document.currentScript.previousElementSibling;
+    var tabs = root.querySelectorAll('.sfa-tab');
+    function show(name) {
+      tabs.forEach(function (t) {
+        var on = t.dataset.p === name;
+        t.setAttribute('aria-selected', on);
+        root.querySelector('#p-' + t.dataset.p).classList.toggle('is-active', on);
+      });
+    }
+    tabs.forEach(function (t, i) {
+      t.addEventListener('click', function () { show(t.dataset.p); });
+      t.addEventListener('keydown', function (e) {
+        var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        var n = tabs[(i + d + tabs.length) % tabs.length];
+        n.focus(); show(n.dataset.p);
+      });
+    });
+  })();
+</script>

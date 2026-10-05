@@ -1,0 +1,1 @@
+{ "name": "tool-preload", "version": "0.1.0", "description": "Keeps context-mode, jcodemunch, claude-mem, WebSearch, Task and Supabase tools loaded so Claude stops calling ToolSearch for them" }

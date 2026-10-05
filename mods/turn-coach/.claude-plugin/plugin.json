@@ -1,0 +1,5 @@
+{
+  "name": "turn-coach",
+  "version": "0.1.0",
+  "description": "One fork per turn: a verdict on work turns (solved, gaps, shortcuts) plus up to 3 next prompts, in one compact block above the prompt. Merges next-steps and next-steps-supervisor."
+}

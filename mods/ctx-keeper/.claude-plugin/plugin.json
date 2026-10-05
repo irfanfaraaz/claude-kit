@@ -1,0 +1,1 @@
+{ "name": "ctx-keeper", "version": "0.1.0", "description": "Cache countdown, context, limits and cost band; past 350k it runs /re-fresh, copies it, compacts and pastes it back", "types": "./types/index.d.ts" }

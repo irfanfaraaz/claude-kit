@@ -1,0 +1,1 @@
+{ "name": "carousel-ship", "version": "0.1.0", "description": "After a carousel render: Caption, Queue Threads and Log ledger buttons; blocks Threads posts with a part over 500 characters", "types": "./types/index.d.ts" }

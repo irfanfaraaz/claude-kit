@@ -1,0 +1,1 @@
+{ "name": "hybrid-agents", "version": "0.1.0", "description": "Subagents default to Sonnet; pasting a plan path adds the hybrid rule (inline small tasks, Sonnet subagents for big ones)" }

@@ -1,0 +1,26 @@
+{
+  "skill_name": "stock-fundamental-analyzer",
+  "evals": [
+    {
+      "id": 0,
+      "name": "halal-screen-us",
+      "prompt": "is nvda halal? i only buy sharia compliant stuff",
+      "expected_output": "A short compliance screen naming AAOIFI, with the activity result and a ratio table (debt/mkt cap, cash+securities/mkt cap, cash+receivables/assets, impermissible income/revenue), each figure sourced. US market conventions ($, B). Date stamp + recheck-quarterly note. Should NOT dump full fundamentals unasked. No buy/sell language.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "deep-dive-india",
+      "prompt": "can you do a full detailed analysis of TCS, everything you can find",
+      "expected_output": "A single HTML artifact starting with <style>, no code fences or DOCTYPE. 9 tabs incl. Sharia. Compliance banner filled above the tabs. Indian conventions: rupees, crore, Apr-Mar FY, promoter holding + pledging rows kept, US ownership block deleted. Missing metrics flagged as data unavailable rather than invented. Data-confidence note. No target price.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "noncompliant-compare-gate",
+      "prompt": "HDFC Bank vs Kotak Mahindra Bank — which one is better to hold for the long term?",
+      "expected_output": "Should lead with the compliance failure: both are conventional banks and fail the activity screen under every standard, so ratio tests don't apply. Should NOT produce a full side-by-side fundamental comparison unasked, and must not name a winner. Should offer compliant same-exposure alternatives and/or ask whether to analyse anyway.",
+      "files": []
+    }
+  ]
+}

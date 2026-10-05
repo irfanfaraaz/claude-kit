@@ -1,0 +1,1 @@
+{ "name": "commit-guard", "version": "0.1.0", "description": "Never commits docs/superpowers, never pushes unless you said push, asks before committing on main/staging/prod" }

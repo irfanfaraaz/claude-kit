@@ -1,0 +1,1 @@
+{ "name": "env-bootstrap", "version": "0.1.0", "description": "Per-project Node version on PATH and env file auto-loaded for Bash, so Claude stops typing nvm use / source .env" }
