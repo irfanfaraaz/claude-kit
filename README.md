@@ -24,7 +24,7 @@ claude --plugin-dir mods/<name>
 
 ## Skills
 
-102 skills in `skills/`. Copy any folder into `~/.claude/skills/` to use it.
+104 skills in `skills/`. Copy any folder into `~/.claude/skills/` to use it.
 
 | Skill | Description |
 |---|---|
@@ -88,6 +88,7 @@ claude --plugin-dir mods/<name>
 | `higgsfield-soul-id` | / |
 | `higgsfield-video-explainer` | / |
 | `higgsfield-websites` | / |
+| `impeccable-gate` | Picks and runs the right impeccable commands, in the right order, for a UI task: a small UI fix, a new screen, or a check-and-fix loop that  |
 | `launch-token` | Guide a developer through launching a token on Solana. Use when a user says "launch a token", "create a token", "pump.fun", "bonding curve", |
 | `learn` | / |
 | `marketing-video` | Create marketing videos for Solana projects using Remotion (code-driven) and Renoise (AI-generated). Use when a user says "marketing video", |
@@ -111,6 +112,7 @@ claude --plugin-dir mods/<name>
 | `research-gate` | Routes "how should I build this" research to the right depth so the cheap answer runs first and the expensive one only fires when it earns i |
 | `review-and-iterate` | Review Solana project code for quality, security, and production readiness. Use when a user says "review my code", "is this production ready |
 | `roast-my-product` | Harsh, honest product critique, find every weakness before users do. Use when a user says "roast my product", "harsh feedback", "be brutal" |
+| `run-sprint` | Runs a sprint of tickets while the user is away: grades each ticket for Sonnet or Opus, builds them with subagents (in parallel when they to |
 | `scaffold-project` | Set up a complete Solana project workspace from a validated idea. Use when a user says "scaffold my project", "set up my workspace", "what s |
 | `short-form-script-writer` | Turns any content idea into scroll stopping hooks and a complete short form script ready to film for Instagram Reels or TikTok. No prompting |
 | `skill-loader` | Discover and load symlinked skills from ~/.cursor/skills/ when needed. Use when a required skill wasn't auto-discovered by Cursor, or when c |
@@ -121,7 +123,7 @@ claude --plugin-dir mods/<name>
 | `submit-to-hackathon` | Prepare and optimize a hackathon submission for a Solana project. Use when a user says "submit to hackathon", "prepare my submission", "hack |
 | `supabase-mcp` | Use Supabase MCP server tools for database operations, queries, and data retrieval. Use when reading from Supabase database, querying tables |
 | `superpowers` |  |
-| `superpowers-gate` | Use when user gives a coding task (feature, fix, refactor, change). Runs BEFORE brainstorming, writing-plans, or TDD. Decides whether to imp |
+| `superpowers-gate` | Routes a coding task to the right amount of process: small fixes done directly, features through superpowers brainstorming and writing-plans |
 | `template` | Replace with description of the skill and when Claude should use it. |
 | `thinking-tool` | Use thinking tools (mcp_think or sequential thinking) to organize reasoning after context changes. Use when examining files, running command |
 | `toggle-two-agent` | Set up the two-agent pattern for a new project. Run once at the start with /project-initializer to create features.json and init.sh structur |

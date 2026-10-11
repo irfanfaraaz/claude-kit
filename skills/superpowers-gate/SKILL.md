@@ -1,41 +1,40 @@
 ---
 name: superpowers-gate
-description: "Use when user gives a coding task (feature, fix, refactor, change). Runs BEFORE brainstorming, writing-plans, or TDD. Decides whether to implement directly, ask the user, or offer workflow options."
+description: "Routes a coding task to the right amount of process: small fixes done directly, features through superpowers brainstorming and writing-plans, then built with subagents. Use when the user gives any coding task (feature, fix, refactor, change, bug) before invoking another superpowers skill or writing code."
 ---
 
-# Superpowers gate: decide and optionally ask
+# Superpowers gate
 
-When the user gives a **coding task** (feature, fix, refactor, change), do this **before** invoking any Superpowers skill or writing code:
+Pick the lightest route that fits, say the route in one line, then follow it. Full process on a one-line fix wastes the user's time; no process on a feature produces the wrong thing.
 
-## 1. Classify the task
+## Rules for every route
 
-- **Tiny**: Single file or 1–2 edits, obvious fix, config/tweak, rename, copy-paste adaptation. No ambiguity.
-- **Small**: One component/API/screen, clear scope, low risk. Could still benefit from a short brainstorm.
-- **Medium**: Multiple components, flows, or integrations; some design choices.
-- **Large**: Multi-step, architecture, or "project" scope.
+- **TDD only when asked.** Do not invoke `tdd` or `superpowers:test-driven-development` unless the user asks or a ticket says `TDD: yes`. Check work with the typecheck during the work and the full checks at the end.
+- **No worktrees.** Work in the current folder on one branch. A worktree means a fresh `node_modules` install, which the user does not want. Skip `superpowers:using-git-worktrees` and any worktree step in other skills.
+- **One committer.** Only the main agent runs git. Subagents edit files and report back; two agents running git in one folder corrupt each other's commits.
+- **UI work goes to `impeccable-gate`.** When a task or ticket is about how a page or component looks or feels, invoke `impeccable-gate` for that part.
 
-## 2. Act or ask
+## Pick the route
 
-- **Tiny**  
-  → Implement directly. Do **not** ask. Do **not** invoke brainstorm/plan/TDD.
+| Route | When | Do |
+|---|---|---|
+| Direct | Typo, copy, config value, one-file fix, clear small change | Implement now. No skills. |
+| Bug | Something broken, failing or slow, cause unknown | `superpowers:systematic-debugging`, then fix directly if small or go to Feature if the fix is big |
+| Feature | New behaviour, several files, or design choices to make | Feature steps below |
 
-- **Small**  
-  → One-line question only:  
-  *"Quick change—go ahead or brainstorm first? (say 'go' or 'brainstorm')"*
+Unsure between Direct and Feature: ask the user one question with both options and your pick.
 
-- **Medium / Large**  
-  → Short offer:  
-  *"This looks like a [medium/large] change. I can: **(A)** Brainstorm then implement, **(B)** Write a plan then execute, **(C)** Just implement. Which?"*
+## Feature steps
 
-## 3. Respect explicit intent
+1. **Brainstorm.** Invoke `superpowers:brainstorming`. It writes the spec to `docs/superpowers/specs/`.
+2. **Plan.** Invoke `superpowers:writing-plans`. For each task, also write which other tasks it waits for, so the plan can become tickets later.
+3. **Choose the build.** Tell the user which build fits and why, in two lines, then wait for their pick:
+   - **Normal:** the user stays in the loop. Invoke `superpowers:subagent-driven-development` (tasks one after another). Use `superpowers:executing-plans` instead if the user wants to build inline.
+   - **Sprint:** the user wants to walk away, or the plan has many tasks. Go to step 4.
+4. **Tickets (Sprint only).** `/to-tickets` is user-only, so read `~/.claude/skills/to-tickets/SKILL.md` and follow it with the plan file as input. Tracker: local files in `.scratch/<sprint>/issues/`, or GitHub issues if the user chose GitHub mode. Ignore its `/setup-matt-pocock-skills` line. It shows the ticket list to the user for approval before saving. If `.scratch/` is not in the repo's `.gitignore`, tell the user.
+5. **Build (Sprint only).** Invoke `run-sprint` with the sprint folder (or `--github <project-number>`). It handles grading, the board, commits, Blocked tickets, end checks, the UI round and `/code-review`.
+6. **PR.** When the user asks for a PR, invoke the `pr` skill for the body.
 
-If the user already says things like "just fix it", "no need to plan", "quick", "only change X", or "don't overthink it" → **skip the ask** and implement.  
-If they say "let's plan first" or "brainstorm" → **skip the ask** and run the requested workflow.
+## Spec without brainstorming
 
-## 4. After they choose
-
-- **Go / Just implement / C** → Implement without brainstorm or plan.
-- **Brainstorm / A** → Run brainstorming (or `/brainstorm`), then implement.
-- **Plan / B** → Run write-plan (or `/write-plan`), then execute or implement in one go.
-
-Keep the ask to one line. Don't list every Superpowers skill; A/B/C is enough.
+If a feature was worked out in chat and brainstorming was skipped, read `~/.claude/skills/to-spec/SKILL.md` and follow it to write the spec into `docs/superpowers/specs/` (not an issue tracker). Then continue at step 2.
