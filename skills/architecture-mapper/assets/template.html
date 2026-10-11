@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agape NewFrontend — Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-2: #1a1a26;
+    --surface-3: #222233;
+    --border: #2a2a3d;
+    --border-hover: #3d3d5c;
+    --text: #e4e4ef;
+    --text-dim: #8888a0;
+    --text-muted: #55556a;
+    --accent: #6c5ce7;
+    --accent-dim: #6c5ce730;
+    --green: #00b894;
+    --green-dim: #00b89420;
+    --blue: #0984e3;
+    --blue-dim: #0984e320;
+    --orange: #e17055;
+    --orange-dim: #e1705520;
+    --pink: #fd79a8;
+    --pink-dim: #fd79a820;
+    --yellow: #ffeaa7;
+    --yellow-dim: #ffeaa720;
+    --cyan: #00cec9;
+    --cyan-dim: #00cec920;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── Navigation ── */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .nav-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    height: 64px;
+    gap: 32px;
+  }
+
+  .nav-brand {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--accent);
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
+
+  .nav-link {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+  .nav-link:hover { color: var(--text); background: var(--surface-2); }
+  .nav-link.active {
+    color: var(--accent);
+    background: var(--accent-dim);
+    border-color: var(--accent);
+  }
+
+  .nav-stats {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+  }
+  .nav-stats span { color: var(--text-dim); }
+
+  /* ── Main ── */
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 96px 32px 64px;
+  }
+
+  /* ── Sections ── */
+  .section {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    margin-bottom: 40px;
+  }
+  .section-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .section-header p {
+    color: var(--text-dim);
+    font-size: 15px;
+    max-width: 600px;
+  }
+
+  /* ── Diagram Canvas ── */
+  .diagram-canvas {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .diagram-canvas::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 20% 30%, var(--accent-dim) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, var(--blue-dim) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* ── Architecture Graph ── */
+  .arch-graph {
+    position: relative;
+    z-index: 1;
+  }
+
+  .arch-row {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .arch-node {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    min-width: 220px;
+    max-width: 320px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .arch-node::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--node-color, var(--accent));
+    opacity: 0.8;
+  }
+
+  .arch-node:hover {
+    border-color: var(--node-color, var(--accent));
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px -12px var(--node-shadow, var(--accent-dim));
+  }
+
+  .arch-node.expanded {
+    border-color: var(--node-color, var(--accent));
+    box-shadow: 0 0 0 1px var(--node-color, var(--accent));
+  }
+
+  .node-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .node-title {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 4px;
+    letter-spacing: -0.2px;
+  }
+
+  .node-subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 8px;
+  }
+
+  .node-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .node-stats {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .node-stat {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .node-stat .val { color: var(--node-color, var(--accent)); font-weight: 600; }
+  .node-stat .label { color: var(--text-muted); margin-left: 4px; }
+
+  /* ── Connection Lines ── */
+  .connections {
+    display: flex;
+    justify-content: center;
+    gap: 64px;
+    margin: -8px 0 24px;
+    position: relative;
+  }
+
+  .conn-line {
+    width: 2px;
+    height: 32px;
+    background: linear-gradient(to bottom, var(--border), var(--accent-dim));
+    position: relative;
+  }
+  .conn-line::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: -3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.5;
+  }
+
+  .conn-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: center;
+    margin: -4px 0 16px;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* ── Detail Panel ── */
+  .detail-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 32px;
+    overflow: hidden;
+    display: none;
+    animation: slideDown 0.3s ease;
+  }
+  .detail-panel.visible { display: block; }
+
+  @keyframes slideDown {
+    from { opacity: 0; max-height: 0; }
+    to { opacity: 1; max-height: 2000px; }
+  }
+
+  .detail-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .detail-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .detail-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.2s;
+  }
+  .detail-close:hover { border-color: var(--text-dim); color: var(--text); }
+
+  .detail-body {
+    padding: 24px;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+
+  .detail-item {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    transition: border-color 0.2s;
+  }
+  .detail-item:hover { border-color: var(--border-hover); }
+
+  .detail-item .di-name {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--cyan);
+  }
+  .detail-item .di-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  /* ── File Tree ── */
+  .file-tree {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    max-height: 400px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .ft-dir {
+    color: var(--accent);
+    cursor: pointer;
+    padding: 2px 0;
+  }
+  .ft-dir:hover { color: var(--text); }
+  .ft-file {
+    color: var(--text-dim);
+    padding: 1px 0 1px 20px;
+  }
+  .ft-count {
+    color: var(--text-muted);
+    font-size: 11px;
+    margin-left: 8px;
+  }
+
+  /* ── Tags ── */
+  .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 2px;
+  }
+  .tag-accent { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
+  .tag-green { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+  .tag-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue); }
+  .tag-orange { background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange); }
+  .tag-pink { background: var(--pink-dim); color: var(--pink); border: 1px solid var(--pink); }
+  .tag-yellow { background: var(--yellow-dim); color: var(--yellow); border: 1px solid var(--yellow); }
+  .tag-cyan { background: var(--cyan-dim); color: var(--cyan); border: 1px solid var(--cyan); }
+
+  /* ── Flow Diagram ── */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 24px 0;
+  }
+
+  .flow-node {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 18px;
+    text-align: center;
+    min-width: 140px;
+    transition: all 0.2s;
+  }
+  .flow-node:hover {
+    border-color: var(--accent);
+    transform: scale(1.02);
+  }
+
+  .flow-node .fn-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .flow-node .fn-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .flow-arrow {
+    color: var(--accent);
+    font-size: 20px;
+    padding: 0 8px;
+    opacity: 0.5;
+  }
+
+  /* ── Subsystem Cards ── */
+  .subsystem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .subsystem-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    transition: all 0.25s;
+    cursor: default;
+  }
+  .subsystem-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+  }
+
+  .sc-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .sc-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .sc-title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .sc-path {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .sc-body {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+
+  .sc-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .sc-item {
+    background: var(--surface-3);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 16px 0;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .nav-inner { padding: 0 16px; gap: 16px; }
+    .nav-stats { display: none; }
+    main { padding: 80px 16px 32px; }
+    .diagram-canvas { padding: 24px 16px; }
+    .arch-row { gap: 12px; }
+    .arch-node { min-width: 160px; padding: 14px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand">agape-newFrontend</div>
+    <div class="nav-links">
+      <div class="nav-link active" onclick="showSection('overview')">Overview</div>
+      <div class="nav-link" onclick="showSection('web')">apps/web</div>
+      <div class="nav-link" onclick="showSection('datacenter')">apps/datacenter</div>
+      <div class="nav-link" onclick="showSection('backend')">apps/backend</div>
+      <div class="nav-link" onclick="showSection('data')">Data Flow</div>
+      <div class="nav-link" onclick="showSection('ai')">AI / RAG</div>
+      <div class="nav-link" onclick="showSection('stack')">Tech Stack</div>
+    </div>
+    <div class="nav-stats">
+      <span>687 files</span>
+      <span>4,491 symbols</span>
+      <span>TS + TSX</span>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ═══════════════ OVERVIEW ═══════════════ -->
+  <div class="section active" id="sec-overview">
+    <div class="section-header">
+      <h1>System Architecture</h1>
+      <p>A jewelry design platform — 3D composer, project data management, and AI-assisted editing in a pnpm monorepo.</p>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> apps/web — 3D Composer</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> apps/datacenter — Data Manager</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> apps/backend — Workers</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div> packages/db — Shared Models</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--pink)"></div> External Services</div>
+    </div>
+
+    <div class="diagram-canvas">
+      <div class="arch-graph">
+        <!-- Top row: Apps -->
+        <div class="arch-row">
+          <div class="arch-node" style="--node-color:var(--accent);--node-shadow:var(--accent-dim)" onclick="showSection('web')">
+            <div class="node-icon">💎</div>
+            <div class="node-title">apps/web</div>
+            <div class="node-subtitle">3D Jewelry Composer</div>
+            <div class="node-desc">Next.js + Three.js/R3F. Design jewelry in 3D with materials, diamonds, engravings. Mix & match sets.</div>
+            <div class="node-stats">
+              <div class="node-stat"><span class="val">445</span><span class="label">files</span></div>
+              <div class="node-stat"><span class="val">363</span><span class="label">tsx</span></div>
+              <div class="node-stat"><span class="val">82</span><span class="label">jsx</span></div>
+            </div>
+          </div>
+
+          <div class="arch-node" style="--node-color:var(--green);--node-shadow:var(--green-dim)" onclick="showSection('datacenter')">
+            <div class="node-icon">📊</div>
+            <div class="node-title">apps/datacenter</div>
+            <div class="node-subtitle">Project Data Manager</div>
+            <div class="node-desc">Next.js. Manage projects, versions, sections, BOM inventory. PDF export, CAD viewer, image gallery.</div>
+            <div class="node-stats">
+              <div class="node-stat"><span class="val">198</span><span class="label">files</span></div>
+              <div class="node-stat"><span class="val">13</span><span class="label">actions</span></div>
+              <div class="node-stat"><span class="val">10</span><span class="label">pdf</span></div>
+            </div>
+          </div>
+
+          <div class="arch-node" style="--node-color:var(--orange);--node-shadow:var(--orange-dim)" onclick="showSection('backend')">
+            <div class="node-icon">⚡</div>
+            <div class="node-title">apps/backend</div>
+            <div class="node-subtitle">Worker Service</div>
+            <div class="node-desc">Node.js + BullMQ. Email notifications, Redis PubSub, background job processing.</div>
+            <div class="node-stats">
+              <div class="node-stat"><span class="val">7</span><span class="label">files</span></div>
+              <div class="node-stat"><span class="val">6</span><span class="label">workers</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connection lines -->
+        <div class="connections">
+          <div class="conn-line"></div>
+          <div class="conn-line"></div>
+          <div class="conn-line"></div>
+        </div>
+        <div class="conn-label">imports shared types &amp; models</div>
+
+        <!-- Shared package -->
+        <div class="arch-row">
+          <div class="arch-node" style="--node-color:var(--cyan);--node-shadow:var(--cyan-dim); min-width: 400px;">
+            <div class="node-icon">📦</div>
+            <div class="node-title">packages/db</div>
+            <div class="node-subtitle">Shared Database Package</div>
+            <div class="node-desc">Mongoose models, TypeScript interfaces, role resolution. Shared across all apps.</div>
+            <div class="node-stats">
+              <div class="node-stat"><span class="val">15</span><span class="label">files</span></div>
+              <div class="node-stat"><span class="val">9</span><span class="label">models</span></div>
+              <div class="node-stat"><span class="val">3</span><span class="label">types</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connection lines -->
+        <div class="connections">
+          <div class="conn-line"></div>
+        </div>
+
+        <!-- External services -->
+        <div class="arch-row">
+          <div class="arch-node" style="--node-color:var(--pink);--node-shadow:var(--pink-dim); min-width:140px; text-align:center;">
+            <div class="node-icon">🗄️</div>
+            <div class="node-title">MongoDB</div>
+            <div class="node-subtitle">via Mongoose</div>
+          </div>
+          <div class="arch-node" style="--node-color:var(--pink);--node-shadow:var(--pink-dim); min-width:140px; text-align:center;">
+            <div class="node-icon">☁️</div>
+            <div class="node-title">AWS S3</div>
+            <div class="node-subtitle">File Storage</div>
+          </div>
+          <div class="arch-node" style="--node-color:var(--pink);--node-shadow:var(--pink-dim); min-width:140px; text-align:center;">
+            <div class="node-icon">⚡</div>
+            <div class="node-title">Redis</div>
+            <div class="node-subtitle">PubSub + BullMQ</div>
+          </div>
+          <div class="arch-node" style="--node-color:var(--pink);--node-shadow:var(--pink-dim); min-width:140px; text-align:center;">
+            <div class="node-icon">🔐</div>
+            <div class="node-title">NextAuth</div>
+            <div class="node-subtitle">Authentication</div>
+          </div>
+          <div class="arch-node" style="--node-color:var(--pink);--node-shadow:var(--pink-dim); min-width:140px; text-align:center;">
+            <div class="node-icon">🤖</div>
+            <div class="node-title">OpenAI</div>
+            <div class="node-subtitle">RAG + Chat</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ APPS/WEB ═══════════════ -->
+  <div class="section" id="sec-web">
+    <div class="section-header">
+      <h1>apps/web — 3D Jewelry Composer</h1>
+      <p>Next.js App Router + Three.js/React Three Fiber. The core product — design, configure, and render jewelry in 3D.</p>
+    </div>
+
+    <div class="subsystem-grid">
+      <div class="subsystem-card">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--accent-dim)">🎨</div>
+          <div>
+            <div class="sc-title">ArtistTool (3D Editor)</div>
+            <div class="sc-path">components/ArtistTool/ — 40+ files</div>
+          </div>
+        </div>
+        <div class="sc-body">The main 3D editing environment. Canvas with split viewports, post-processing, diamond shaders, model uploading, and panel-based controls.</div>
+        <div class="sc-items">
+          <span class="sc-item">EditorExperience</span>
+          <span class="sc-item">EditorScene</span>
+          <span class="sc-item">ModelStage</span>
+          <span class="sc-item">SplitScreenViewports</span>
+          <span class="sc-item">UploadedModel</span>
+          <span class="sc-item">ScreenshotTaker</span>
+          <span class="sc-item">SelectionOutline</span>
+          <span class="sc-item">Outliner</span>
+          <span class="sc-item">Toolbar</span>
+        </div>
+      </div>
+
+      <div class="subsystem-card">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--green-dim)">🎛️</div>
+          <div>
+            <div class="sc-title">Editor Panels</div>
+            <div class="sc-path">components/ArtistTool/*Panel.jsx</div>
+          </div>
+        </div>
+        <div class="sc-body">Side panels for editing materials, lighting, environment, engraving, post-processing, measurements, and costs.</div>
+        <div class="sc-items">
+          <span class="sc-item">MaterialPanel</span>
+          <span class="sc-item">LightPanel</span>
+          <span class="sc-item">EnvironmentPanel</span>
+          <span class="sc-item">EngravingPanel</span>
+          <span class="sc-item">BackgroundPanel</span>
+          <span class="sc-item">TransformPanel</span>
+          <span class="sc-item">MeasurementPanel</span>
+          <span class="sc-item">MaterialCostPanel</span>
+          <span class="sc-item">PostProcessingPanel</span>
+        </div>
+      </div>
+
+      <div class="subsystem-card">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--blue-dim)">🔮</div>
+          <div>
+            <div class="sc-title">Engine / Viewer</div>
+            <div class="sc-path">components/Engine/</div>
+          </div>
+        </div>
+        <div class="sc-body">Generic 3D viewer with asset resolution, slot-based rendering, and showcase animations (ring spin, etc).</div>
+        <div class="sc-items">
+          <span class="sc-item">GenericViewer</span>
+          <span class="sc-item">SlotRenderer</span>
+          <span class="sc-item">RingShowcaseAnimation</span>
+          <span class="sc-item">resolveAllAssets</span>
+        </div>
+      </div>
+
+      <div class="subsystem-card">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--pink-dim)">💍</div>
+          <div>
+            <div class="sc-title">Jewelry Composer</div>
+            <div class="sc-path">app/composer/</div>
+          </div>
+        </div>
+        <div class="sc-body">Product configurator for jewelry sets, necklaces, and e-commerce. Mix-and-match asset system with combinations.</div>
+        <div class="sc-items">
+          <span class="sc-item">ComposerPage</span>
+          <span class="sc-item">NecklacePage</span>
+          <span class="sc-item">SetsPage</span>
+          <span class="sc-item">DesignPage</span>
+          <span class="sc-item">AssetsPage</span>
+          <span class="sc-item">EcommercePage</span>
+          <span class="sc-item">SettingsPage</span>
+        </div>
+      </div>
+
+      <div class="subsystem-card">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--yellow-dim)">💬</div>
+          <div>
+            <div class="sc-title">Comments System</div>
+            <div class="sc-path">components/Comments/</div>
+          </div>
+        </div>
+        <div class="sc-body">Threaded commenting with image attachments, @mentions, 3D marker placement, and reply cards.</div>
+        <div class="sc-items">
+          <span class="sc-item">CommentForm</span>
+          <span class="sc-item">CommentReplyCard</span>
+          <span class="sc-item">CommentMarkers</span>
+          <span class="sc-item">MentionPopover</span>
+          <span class="sc-item">ImageUpload</span>
+          <span class="sc-item">CommentsPanel</span>
+        </div>
+      </div>
+
+      <div class="subsystem-card">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--cyan-dim)">📁</div>
+          <div>
+            <div class="sc-title">Server Actions</div>
+            <div class="sc-path">lib/actions/ — 17 files</div>
+          </div>
+        </div>
+        <div class="sc-body">Next.js server actions for all CRUD operations. Workspace, versions, comments, tags, invites, mix-and-match, uploads.</div>
+        <div class="sc-items">
+          <span class="sc-item">workspace (30 fn)</span>
+          <span class="sc-item">comment (16 fn)</span>
+          <span class="sc-item">version (8 fn)</span>
+          <span class="sc-item">tag (9 fn)</span>
+          <span class="sc-item">invite (5 fn)</span>
+          <span class="sc-item">folder (12 fn)</span>
+          <span class="sc-item">mixAndMatch (4 files)</span>
+        </div>
+      </div>
+
+      <div class="subsystem-card">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--orange-dim)">🧠</div>
+          <div>
+            <div class="sc-title">Editor State</div>
+            <div class="sc-path">lib/states/ — 13 files</div>
+          </div>
+        </div>
+        <div class="sc-body">TypeScript state interfaces for every aspect of the 3D editor: materials, lights, environment, post-processing, selection, UI, history.</div>
+        <div class="sc-items">
+          <span class="sc-item">editorMaterialState</span>
+          <span class="sc-item">editorLightState</span>
+          <span class="sc-item">editorEnvironmentState</span>
+          <span class="sc-item">editorPostProcessingState</span>
+          <span class="sc-item">editorSelectionState</span>
+          <span class="sc-item">editorUIState</span>
+          <span class="sc-item">editorHistoryState</span>
+          <span class="sc-item">uploadState</span>
+          <span class="sc-item">mixAndMatchState</span>
+        </div>
+      </div>
+
+      <div class="subsystem-card">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--accent-dim)">🤖</div>
+          <div>
+            <div class="sc-title">AI / RAG System</div>
+            <div class="sc-path">lib/ai/ — 25+ tools</div>
+          </div>
+        </div>
+        <div class="sc-body">Chat engine with RAG pipeline (ingest, embed, search). 25+ AI tools that directly manipulate the 3D scene and project state.</div>
+        <div class="sc-items">
+          <span class="sc-item">chat-engine</span>
+          <span class="sc-item">rag-ingest</span>
+          <span class="sc-item">embeddings</span>
+          <span class="sc-item">capture-screenshot</span>
+          <span class="sc-item">update-material-color</span>
+          <span class="sc-item">compare-versions</span>
+          <span class="sc-item">list-model-meshes</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pages -->
+    <h2 style="margin-top:40px; margin-bottom:16px; font-size:18px; font-weight:600;">Pages (App Router)</h2>
+    <div class="flow">
+      <div class="flow-node"><div class="fn-title">/login</div><div class="fn-desc">Auth</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="fn-title">/</div><div class="fn-desc">Home</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="border-color:var(--accent)"><div class="fn-title">/projects/[id]</div><div class="fn-desc">Project view</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="border-color:var(--accent)"><div class="fn-title">/projects/[id]/edit</div><div class="fn-desc">3D Editor</div></div>
+    </div>
+    <div class="flow">
+      <div class="flow-node" style="border-color:var(--pink)"><div class="fn-title">/composer</div><div class="fn-desc">Main hub</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="fn-title">/composer/sets</div><div class="fn-desc">Set manager</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="fn-title">/composer/necklace</div><div class="fn-desc">Necklace cfg</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="fn-title">/composer/ecommerce</div><div class="fn-desc">E-commerce</div></div>
+    </div>
+    <div class="flow" style="margin-top:8px">
+      <div class="flow-node"><div class="fn-title">/folders/[id]</div><div class="fn-desc">Folder view</div></div>
+      <div class="flow-arrow" style="opacity:0.3">·</div>
+      <div class="flow-node"><div class="fn-title">/share/[token]</div><div class="fn-desc">Public share</div></div>
+      <div class="flow-arrow" style="opacity:0.3">·</div>
+      <div class="flow-node"><div class="fn-title">/api/chat</div><div class="fn-desc">AI Chat</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ DATACENTER ═══════════════ -->
+  <div class="section" id="sec-datacenter">
+    <div class="section-header">
+      <h1>apps/datacenter — Project Data Manager</h1>
+      <p>Next.js app for managing jewelry project data, versions, sections, BOM inventory, PDF export, and team collaboration.</p>
+    </div>
+
+    <div class="subsystem-grid">
+      <div class="subsystem-card">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--green-dim)">📋</div>
+          <div>
+            <div class="sc-title">Project Detail View</div>
+            <div class="sc-path">app/projects/[id]/components/ — 30+ files</div>
+          </div>
+        </div>
+        <div class="sc-body">The main project workspace. Sections, data tables, file viewers, image gallery, BOM inventory, version management.</div>
+        <div class="sc-items">
+          <span class="sc-item">ProjectView</span>
+          <span class="sc-item">ProjectHeader</span>
+          <span class="sc-item">ProjectSidebar</span>
+          <span class="sc-item">SectionContent</span>
+          <span class="sc-item">DataTable</span>
+          <span class="sc-item">BomInventoryView</span>
+          <span class="sc-item">CadViewer</span>
+          <span class="sc-item">FileViewer</span>
+          <span class="sc-item">ImageGalleryView</span>
+          <span class="sc-item">ExcelViewer</span>
+        </div>
+      </div>
+
+      <div class="subsystem-card">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--blue-dim)">📄</div>
+          <div>
+            <div class="sc-title">PDF Generation</div>
+            <div class="sc-path">lib/pdf/ — 10 files</div>
+          </div>
+        </div>
+        <div class="sc-body">Server-side PDF reports with react-pdf. Project reports, BOM documents, canvas snapshots, rich text parsing.</div>
+        <div class="sc-items">
+          <span class="sc-item">ProjectReportDocument</span>
+          <span class="sc-item">BomInventoryDocument</span>
+          <span class="sc-item">ReportSections</span>
+          <span class="sc-item">PdfLayoutEditor</span>
+          <span class="sc-item">captureCanvasSnapshots</span>
+          <span class="sc-item">registerPdfFonts</span>
+        </div>
+      </div>
+
+      <div class="subsystem-card">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--orange-dim)">🔐</div>
+          <div>
+            <div class="sc-title">RBAC Permissions</div>
+            <div class="sc-path">lib/permissions.ts</div>
+          </div>
+        </div>
+        <div class="sc-body">Role-based access control. Owner, admin, editor, viewer roles with fine-grained permission checks per action.</div>
+        <div class="sc-items">
+          <span class="sc-item">getUserProjectRole</span>
+          <span class="sc-item">canViewProject</span>
+          <span class="sc-item">canEditProject</span>
+          <span class="sc-item">canDeleteProject</span>
+          <span class="sc-item">canManageMembers</span>
+          <span class="sc-item">canManageVersions</span>
+        </div>
+      </div>
+
+      <div class="subsystem-card">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--cyan-dim)">🔄</div>
+          <div>
+            <div class="sc-title">Version Management</div>
+            <div class="sc-path">lib/actions/version.actions.ts</div>
+          </div>
+        </div>
+        <div class="sc-body">Full version lifecycle. Create, duplicate, compare, set current version, version history with sidebar navigation.</div>
+        <div class="sc-items">
+          <span class="sc-item">createVersion</span>
+          <span class="sc-item">duplicateVersion</span>
+          <span class="sc-item">getCurrentVersion</span>
+          <span class="sc-item">setCurrentVersion</span>
+          <span class="sc-item">AllVersionsSection</span>
+          <span class="sc-item">InUseVersionSection</span>
+        </div>
+      </div>
+
+      <div class="subsystem-card">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--pink-dim)">🏷️</div>
+          <div>
+            <div class="sc-title">Data Sections</div>
+            <div class="sc-path">lib/actions/section.actions.ts — 24 fn</div>
+          </div>
+        </div>
+        <div class="sc-body">Typed section system. Each project has multiple sections (images, data, CAD files, documents) with ordering and validation.</div>
+        <div class="sc-items">
+          <span class="sc-item">getSectionModelByType</span>
+          <span class="sc-item">FlexibleTableEditor</span>
+          <span class="sc-item">RingWeightTableEditor</span>
+          <span class="sc-item">EngravingFormatEditor</span>
+          <span class="sc-item">DataEntryForm</span>
+          <span class="sc-item">AddSectionDialog</span>
+        </div>
+      </div>
+
+      <div class="subsystem-card">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--yellow-dim)">🌐</div>
+          <div>
+            <div class="sc-title">i18n + Theming</div>
+            <div class="sc-path">lib/translations.ts, lib/data-library-theme.ts</div>
+          </div>
+        </div>
+        <div class="sc-body">Multi-language support with stored locale preferences. Data Library theming with tone settings.</div>
+        <div class="sc-items">
+          <span class="sc-item">LanguageSwitcher</span>
+          <span class="sc-item">ThemeToneSettings</span>
+          <span class="sc-item">DataLibraryTheme</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pages -->
+    <h2 style="margin-top:40px; margin-bottom:16px; font-size:18px; font-weight:600;">Pages</h2>
+    <div class="flow">
+      <div class="flow-node"><div class="fn-title">/login</div><div class="fn-desc">Auth</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="fn-title">/</div><div class="fn-desc">Dashboard</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="border-color:var(--green)"><div class="fn-title">/projects/[id]</div><div class="fn-desc">Project detail</div></div>
+    </div>
+    <div class="flow" style="margin-top:8px">
+      <div class="flow-node"><div class="fn-title">/recents</div><div class="fn-desc">Recent projects</div></div>
+      <div class="flow-arrow" style="opacity:0.3">·</div>
+      <div class="flow-node"><div class="fn-title">/priority</div><div class="fn-desc">Priority view</div></div>
+      <div class="flow-arrow" style="opacity:0.3">·</div>
+      <div class="flow-node"><div class="fn-title">/involved</div><div class="fn-desc">My projects</div></div>
+      <div class="flow-arrow" style="opacity:0.3">·</div>
+      <div class="flow-node"><div class="fn-title">/deleted</div><div class="fn-desc">Trash</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ BACKEND ═══════════════ -->
+  <div class="section" id="sec-backend">
+    <div class="section-header">
+      <h1>apps/backend — Worker Service</h1>
+      <p>Lightweight Node.js service for background jobs. Email notifications and Redis PubSub messaging.</p>
+    </div>
+
+    <div class="diagram-canvas">
+      <div class="arch-graph">
+        <div class="arch-row">
+          <div class="arch-node" style="--node-color:var(--orange);--node-shadow:var(--orange-dim)">
+            <div class="node-icon">🚀</div>
+            <div class="node-title">index.ts</div>
+            <div class="node-subtitle">Entry point — 40 symbols</div>
+            <div class="node-desc">Starts workers, manages shutdown, handles workspace user lookup. Express server with graceful lifecycle.</div>
+            <div class="sc-items" style="margin-top:12px">
+              <span class="sc-item">startWorkers</span>
+              <span class="sc-item">shutdownWorkers</span>
+              <span class="sc-item">getWorkspaceUsers</span>
+            </div>
+          </div>
+        </div>
+        <div class="connections">
+          <div class="conn-line"></div>
+          <div class="conn-line"></div>
+        </div>
+        <div class="arch-row">
+          <div class="arch-node" style="--node-color:var(--yellow);--node-shadow:var(--yellow-dim)">
+            <div class="node-icon">📧</div>
+            <div class="node-title">email/sendEmailNotification.ts</div>
+            <div class="node-subtitle">14 symbols, 6 functions</div>
+            <div class="node-desc">HTML + text templates for comments, invites, and notification emails.</div>
+            <div class="sc-items" style="margin-top:12px">
+              <span class="sc-item">commentHtml</span>
+              <span class="sc-item">commentText</span>
+              <span class="sc-item">inviteHtml</span>
+              <span class="sc-item">inviteText</span>
+            </div>
+          </div>
+          <div class="arch-node" style="--node-color:var(--pink);--node-shadow:var(--pink-dim)">
+            <div class="node-icon">📡</div>
+            <div class="node-title">redis/MsgsPubSub.ts</div>
+            <div class="node-subtitle">7 symbols, 4 functions</div>
+            <div class="node-desc">Redis PubSub wrapper. Subscribe to channels/patterns, publish real-time messages.</div>
+            <div class="sc-items" style="margin-top:12px">
+              <span class="sc-item">subscribe</span>
+              <span class="sc-item">subscribePattern</span>
+              <span class="sc-item">unsubscribe</span>
+              <span class="sc-item">publish</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ DATA FLOW ═══════════════ -->
+  <div class="section" id="sec-data">
+    <div class="section-header">
+      <h1>Data Flow</h1>
+      <p>How data moves through the system — from UI components through server actions to external services.</p>
+    </div>
+
+    <div class="diagram-canvas">
+      <div class="flow" style="flex-direction:column; gap:0;">
+        <div class="flow" style="margin:0;">
+          <div class="flow-node" style="border-color:var(--accent); min-width:200px">
+            <div class="fn-title">React Component</div>
+            <div class="fn-desc">UI interaction</div>
+          </div>
+        </div>
+        <div style="text-align:center; color:var(--accent); padding:8px;">↓ <span style="font-size:11px; color:var(--text-muted)">direct import</span></div>
+        <div class="flow" style="margin:0;">
+          <div class="flow-node" style="border-color:var(--green); min-width:200px">
+            <div class="fn-title">Server Action</div>
+            <div class="fn-desc">"use server" function</div>
+          </div>
+        </div>
+        <div style="text-align:center; color:var(--green); padding:8px;">↓ <span style="font-size:11px; color:var(--text-muted)">validates + queries</span></div>
+        <div class="flow" style="margin:0; gap:16px;">
+          <div class="flow-node" style="border-color:var(--cyan)">
+            <div class="fn-title">MongoDB</div>
+            <div class="fn-desc">Mongoose models</div>
+          </div>
+          <div class="flow-node" style="border-color:var(--orange)">
+            <div class="fn-title">AWS S3</div>
+            <div class="fn-desc">File upload/delete</div>
+          </div>
+          <div class="flow-node" style="border-color:var(--pink)">
+            <div class="fn-title">Redis Queue</div>
+            <div class="fn-desc">BullMQ jobs</div>
+          </div>
+        </div>
+        <div style="text-align:center; color:var(--pink); padding:8px;">↓ <span style="font-size:11px; color:var(--text-muted)">dequeues + processes</span></div>
+        <div class="flow" style="margin:0;">
+          <div class="flow-node" style="border-color:var(--orange); min-width:200px">
+            <div class="fn-title">Backend Workers</div>
+            <div class="fn-desc">Email, notifications</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 style="margin-top:32px; margin-bottom:16px; font-size:18px; font-weight:600;">Database Models (packages/db)</h2>
+    <div class="detail-grid">
+      <div class="detail-item"><div class="di-name">IProject</div><div class="di-desc">Jewelry project — name, description, category, status</div></div>
+      <div class="detail-item"><div class="di-name">IVersion</div><div class="di-desc">Project version — snapshot of project state at a point in time</div></div>
+      <div class="detail-item"><div class="di-name">IUser</div><div class="di-desc">User profile — email, name, avatar</div></div>
+      <div class="detail-item"><div class="di-name">IMembership</div><div class="di-desc">User ↔ Project role mapping with granted-via tracking</div></div>
+      <div class="detail-item"><div class="di-name">IInvite</div><div class="di-desc">Pending invitation — email, role, project, expiry</div></div>
+      <div class="detail-item"><div class="di-name">ITag / IProjectTag</div><div class="di-desc">Tagging system for project categorization</div></div>
+      <div class="detail-item"><div class="di-name">IFolder</div><div class="di-desc">Folder hierarchy for organizing projects</div></div>
+      <div class="detail-item"><div class="di-name">IActivity</div><div class="di-desc">Audit log — who did what, when</div></div>
+      <div class="detail-item"><div class="di-name">ResourceType</div><div class="di-desc">Enum: project, workspace, folder, etc.</div></div>
+      <div class="detail-item"><div class="di-name">Role</div><div class="di-desc">Enum: owner, admin, editor, viewer</div></div>
+    </div>
+
+    <h2 style="margin-top:32px; margin-bottom:16px; font-size:18px; font-weight:600;">Web-Only Models</h2>
+    <div class="detail-grid">
+      <div class="detail-item"><div class="di-name">IWorkspace</div><div class="di-desc">Top-level container — projects, members, settings</div></div>
+      <div class="detail-item"><div class="di-name">IComment / IReply</div><div class="di-desc">Threaded comments with 3D position markers</div></div>
+      <div class="detail-item"><div class="di-name">IMaterial</div><div class="di-desc">Material presets — metal type, color, texture</div></div>
+      <div class="detail-item"><div class="di-name">ICategory / ISeries</div><div class="di-desc">Product categorization and series grouping</div></div>
+      <div class="detail-item"><div class="di-name">IMixAndMatch*</div><div class="di-desc">Asset, Set, Combination, Invite, Membership models</div></div>
+      <div class="detail-item"><div class="di-name">ISupportDocumentChunk</div><div class="di-desc">RAG chunks — vectorized document fragments</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ AI / RAG ═══════════════ -->
+  <div class="section" id="sec-ai">
+    <div class="section-header">
+      <h1>AI / RAG System</h1>
+      <p>An agentic AI chat that can read project data, search documentation, and directly manipulate the 3D scene.</p>
+    </div>
+
+    <div class="diagram-canvas">
+      <div class="flow" style="flex-direction:column; gap:0;">
+        <div class="flow" style="margin:0;">
+          <div class="flow-node" style="border-color:var(--accent); min-width:220px">
+            <div class="fn-title">/api/chat → POST</div>
+            <div class="fn-desc">Extracts workspace context</div>
+          </div>
+        </div>
+        <div style="text-align:center; color:var(--accent); padding:8px;">↓</div>
+        <div class="flow" style="margin:0;">
+          <div class="flow-node" style="border-color:var(--green); min-width:220px">
+            <div class="fn-title">runChatEngine</div>
+            <div class="fn-desc">Orchestrates tools + RAG</div>
+          </div>
+        </div>
+        <div style="text-align:center; color:var(--green); padding:8px;">↓ calls ↓</div>
+        <div class="flow" style="margin:0; gap:16px; flex-wrap:wrap">
+          <div class="flow-node" style="border-color:var(--cyan)">
+            <div class="fn-title">RAG Pipeline</div>
+            <div class="fn-desc">ingest → embed → search</div>
+          </div>
+          <div class="flow-node" style="border-color:var(--orange)">
+            <div class="fn-title">25+ Agent Tools</div>
+            <div class="fn-desc">Scene + project actions</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 style="margin-top:32px; margin-bottom:16px; font-size:18px; font-weight:600;">RAG Pipeline</h2>
+    <div class="flow">
+      <div class="flow-node"><div class="fn-title">rag-ingest</div><div class="fn-desc">13 functions<br/>checksum, slugify, chunk</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="fn-title">embeddings</div><div class="fn-desc">generateEmbedding(s)<br/>OpenAI API</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="fn-title">rag.ts</div><div class="fn-desc">normalizeQuery<br/>toSnippet, search</div></div>
+    </div>
+
+    <h2 style="margin-top:32px; margin-bottom:16px; font-size:18px; font-weight:600;">AI Agent Tools</h2>
+    <div class="subsystem-grid">
+      <div class="subsystem-card" style="padding:16px;">
+        <div class="sc-title" style="color:var(--accent); margin-bottom:8px;">Scene Control</div>
+        <div class="sc-items">
+          <span class="sc-item">capture-screenshot</span>
+          <span class="sc-item">export-scene-json</span>
+          <span class="sc-item">set-background-type</span>
+          <span class="sc-item">set-floor-type</span>
+          <span class="sc-item">update-background-color</span>
+          <span class="sc-item">toggle-effect</span>
+          <span class="sc-item">update-effect-intensity</span>
+        </div>
+      </div>
+      <div class="subsystem-card" style="padding:16px;">
+        <div class="sc-title" style="color:var(--green); margin-bottom:8px;">Materials & Model</div>
+        <div class="sc-items">
+          <span class="sc-item">get-materials-by-category</span>
+          <span class="sc-item">update-material-color</span>
+          <span class="sc-item">list-model-meshes</span>
+          <span class="sc-item">get-mesh-dimensions</span>
+          <span class="sc-item">set-engraving-style</span>
+          <span class="sc-item">update-engraving-text</span>
+        </div>
+      </div>
+      <div class="subsystem-card" style="padding:16px;">
+        <div class="sc-title" style="color:var(--orange); margin-bottom:8px;">Project Management</div>
+        <div class="sc-items">
+          <span class="sc-item">rename-project</span>
+          <span class="sc-item">modify-description</span>
+          <span class="sc-item">update-project-status</span>
+          <span class="sc-item">set-project-category</span>
+          <span class="sc-item">change-user-role</span>
+          <span class="sc-item">resend-view-only-link</span>
+          <span class="sc-item">delete-2d-sketch</span>
+        </div>
+      </div>
+      <div class="subsystem-card" style="padding:16px;">
+        <div class="sc-title" style="color:var(--cyan); margin-bottom:8px;">Version Intelligence</div>
+        <div class="sc-items">
+          <span class="sc-item">list-project-versions</span>
+          <span class="sc-item">compare-versions</span>
+          <span class="sc-item">restore-previous-version</span>
+          <span class="sc-item">identify-metadata-changes</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ TECH STACK ═══════════════ -->
+  <div class="section" id="sec-stack">
+    <div class="section-header">
+      <h1>Tech Stack</h1>
+      <p>Languages, frameworks, and infrastructure powering the platform.</p>
+    </div>
+
+    <div class="subsystem-grid">
+      <div class="subsystem-card">
+        <div class="sc-title" style="margin-bottom:12px;">Frontend</div>
+        <div class="sc-items">
+          <span class="tag tag-blue">Next.js (App Router)</span>
+          <span class="tag tag-blue">React</span>
+          <span class="tag tag-accent">Three.js</span>
+          <span class="tag tag-accent">React Three Fiber</span>
+          <span class="tag tag-cyan">TypeScript</span>
+          <span class="tag tag-green">Tailwind CSS</span>
+          <span class="tag tag-green">shadcn/ui</span>
+        </div>
+      </div>
+      <div class="subsystem-card">
+        <div class="sc-title" style="margin-bottom:12px;">Backend / Data</div>
+        <div class="sc-items">
+          <span class="tag tag-green">MongoDB</span>
+          <span class="tag tag-green">Mongoose</span>
+          <span class="tag tag-orange">Redis</span>
+          <span class="tag tag-orange">BullMQ</span>
+          <span class="tag tag-pink">AWS S3</span>
+          <span class="tag tag-yellow">NextAuth</span>
+        </div>
+      </div>
+      <div class="subsystem-card">
+        <div class="sc-title" style="margin-bottom:12px;">AI / ML</div>
+        <div class="sc-items">
+          <span class="tag tag-accent">OpenAI API</span>
+          <span class="tag tag-accent">RAG Pipeline</span>
+          <span class="tag tag-accent">Vector Embeddings</span>
+          <span class="tag tag-cyan">25+ Agent Tools</span>
+        </div>
+      </div>
+      <div class="subsystem-card">
+        <div class="sc-title" style="margin-bottom:12px;">3D / Graphics</div>
+        <div class="sc-items">
+          <span class="tag tag-accent">GLB/GLTF Models</span>
+          <span class="tag tag-accent">Diamond Shaders</span>
+          <span class="tag tag-blue">Post-Processing</span>
+          <span class="tag tag-blue">HDRI Environments</span>
+          <span class="tag tag-cyan">Split Viewports</span>
+          <span class="tag tag-pink">Screenshot Capture</span>
+        </div>
+      </div>
+      <div class="subsystem-card">
+        <div class="sc-title" style="margin-bottom:12px;">Infrastructure</div>
+        <div class="sc-items">
+          <span class="tag tag-orange">Docker</span>
+          <span class="tag tag-orange">GitHub Actions CI/CD</span>
+          <span class="tag tag-cyan">pnpm Monorepo</span>
+          <span class="tag tag-green">Netlify (web)</span>
+        </div>
+      </div>
+      <div class="subsystem-card">
+        <div class="sc-title" style="margin-bottom:12px;">Datacenter-Specific</div>
+        <div class="sc-items">
+          <span class="tag tag-pink">react-pdf</span>
+          <span class="tag tag-green">CAD Viewers (GLB/STL/OBJ)</span>
+          <span class="tag tag-yellow">i18n</span>
+          <span class="tag tag-blue">Image Cropper</span>
+          <span class="tag tag-cyan">BOM Inventory</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <h2 style="margin-top:40px; margin-bottom:16px; font-size:18px; font-weight:600;">Codebase Stats</h2>
+    <div class="detail-grid">
+      <div class="detail-item">
+        <div class="di-name" style="font-size:28px; color:var(--accent);">687</div>
+        <div class="di-desc">Total files indexed</div>
+      </div>
+      <div class="detail-item">
+        <div class="di-name" style="font-size:28px; color:var(--green);">4,491</div>
+        <div class="di-desc">Symbols extracted</div>
+      </div>
+      <div class="detail-item">
+        <div class="di-name" style="font-size:28px; color:var(--orange);">363</div>
+        <div class="di-desc">TSX components</div>
+      </div>
+      <div class="detail-item">
+        <div class="di-name" style="font-size:28px; color:var(--pink);">210</div>
+        <div class="di-desc">TypeScript modules</div>
+      </div>
+      <div class="detail-item">
+        <div class="di-name" style="font-size:28px; color:var(--cyan);">82</div>
+        <div class="di-desc">Legacy JSX files</div>
+      </div>
+      <div class="detail-item">
+        <div class="di-name" style="font-size:28px; color:var(--yellow);">3</div>
+        <div class="di-desc">Apps in monorepo</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    document.getElementById('sec-' + id).classList.add('active');
+    event.target.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+
+</body>
+</html>
