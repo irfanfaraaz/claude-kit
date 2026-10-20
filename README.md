@@ -22,6 +22,21 @@ claude --plugin-dir mods/<name>
 | `tool-preload` | Keeps context-mode, jcodemunch, claude-mem, WebSearch, Task and Supabase tools loaded so Claude stops calling ToolSearch for them |
 | `turn-coach` | One fork per turn: a verdict on work turns (solved, gaps, shortcuts) plus up to 3 next prompts, in one compact block above the prompt. Merges next-steps and next-steps-supervisor. |
 
+## Global instructions
+
+`global/CLAUDE.md` is my `~/.claude/CLAUDE.md`. `global/instructions/lean-code.md` holds my coding rules: reuse first, the smallest change that fully works, offer extras as a multiple choice instead of skipping them, and end each reply with what was skipped. It replaces the Ponytail plugin's rules.
+
+The rules load three ways: CLAUDE.md imports them (`@instructions/lean-code.md`), and two hooks in `~/.claude/settings.json` add them on every session start and compaction and into every subagent:
+
+```json
+"SessionStart": [{ "matcher": "startup|resume|clear|compact", "hooks": [{ "type": "command", "timeout": 5,
+  "command": "jq -Rs '{hookSpecificOutput:{hookEventName:\"SessionStart\",additionalContext:.}}' \"$HOME/.claude/instructions/lean-code.md\" 2>/dev/null || true" }] }],
+"SubagentStart": [{ "hooks": [{ "type": "command", "timeout": 5,
+  "command": "jq -Rs '{hookSpecificOutput:{hookEventName:\"SubagentStart\",additionalContext:.}}' \"$HOME/.claude/instructions/lean-code.md\" 2>/dev/null || true" }] }]
+```
+
+To use them, copy both files into `~/.claude/` and merge the hooks into your settings. Keep the file out of `~/.claude/rules/`, which Claude Code loads on its own.
+
 ## Skills
 
 265 skills in `skills/`. Copy any folder into `~/.claude/skills/` to use it. Third-party skills are copied in too; their sources are listed below.

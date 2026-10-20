@@ -290,3 +290,5 @@ See reference docs for optional/less-frequent guidance:
 
 - **Codex Integration** — See `~/.claude/docs/codex-integration.md` (do/don't rules)
 - **Two-Agent Pattern** — See `~/.claude/docs/two-agent-pattern.md` (project tracking framework, optional)
+
+@instructions/lean-code.md
