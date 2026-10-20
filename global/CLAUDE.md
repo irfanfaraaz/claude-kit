@@ -250,6 +250,7 @@ For any coding task, invoke the `superpowers-gate` skill first. It holds the ful
 - **UI work:** `impeccable-gate` picks the impeccable commands.
 - **PR body:** the `pr` skill.
 - **`/to-spec`:** only when brainstorming was skipped.
+- **Reviews in subagent builds (STRICT):** each task gets one review and one fix round. After the fix lands, commit and mark the task done — never a re-review. The final whole-branch review is the only second look.
 
 ## TDD: Off by Default, Batched When On (STRICT)
 
@@ -289,5 +290,3 @@ See reference docs for optional/less-frequent guidance:
 
 - **Codex Integration** — See `~/.claude/docs/codex-integration.md` (do/don't rules)
 - **Two-Agent Pattern** — See `~/.claude/docs/two-agent-pattern.md` (project tracking framework, optional)
-
-@RTK.md
