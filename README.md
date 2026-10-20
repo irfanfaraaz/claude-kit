@@ -24,7 +24,7 @@ claude --plugin-dir mods/<name>
 
 ## Skills
 
-261 skills in `skills/`. Copy any folder into `~/.claude/skills/` to use it. Third-party skills are copied in too; their sources are listed below.
+265 skills in `skills/`. Copy any folder into `~/.claude/skills/` to use it. Third-party skills are copied in too; their sources are listed below.
 
 | Skill | Description |
 |---|---|
@@ -49,10 +49,13 @@ claude --plugin-dir mods/<name>
 | `alibabacloud-terraform-code-generation` | / |
 | `alibabacloud-waf-bot-management` | > |
 | `alibabacloud-waf-security-monitor` | / |
+| `anatomy` | Build crafted, highly detailed, interactive isometric SVG figures that explain a technical idea as a real physical object (a test rig, a dia |
+| `anatomy-reveal` | Build any physical object (a product, a tool, furniture, an instrument, a shoe, a vehicle, a piece of jewellery, kitchenware, a toy, even a  |
 | `api-design-principles` | Master REST and GraphQL API design principles to build intuitive, scalable, and maintainable APIs that delight developers. Use when designin |
 | `apply-grant` | Prepare an Agentic Engineering Grant application by gathering project data, git history, and context files, then presenting all fields neede |
 | `architecture-mapper` | Generate a beautiful interactive HTML architecture overview of any codebase using jcodemunch structural analysis , no external LLM API neede |
 | `architecture-patterns` | Implement proven backend architecture patterns including Clean Architecture, Hexagonal Architecture, and Domain-Driven Design. Use when arch |
+| `brag-gate` | Makes one 20-30 s launch video for a project by combining /brag (story, music, share copy), /iso-glow (glowing flow along wires), /anatomy ( |
 | `brand-design` | Generate, preview, and apply a brand color palette (plus typography, gradients, and tone/voice) to a frontend project. Use when a user says  |
 | `bro` | Re-explain the previous assistant message in a much simpler way, for when the reply made you go 'bro what'. Use /bro to get a plain-languag |
 | `build-data-pipeline` | Guide a developer through building a Solana data pipeline or indexer. Use when a user says "build an indexer", "data pipeline", "analytics", |
@@ -98,6 +101,7 @@ claude --plugin-dir mods/<name>
 | `higgsfield-websites` | / |
 | `impeccable-gate` | Picks and runs the right impeccable commands, in the right order, for a UI task: a small UI fix, a new screen, or a check-and-fix loop that  |
 | `infographic-builder` | Turn a structured document (an /ingest reflection, role report, weekly-learnings digest, deck outline, research note) into a beautiful, self |
+| `iso-glow` | Build interactive isometric line-art figures with glow lighting in a single HTML file — a dark hairline drawing where whatever is live glows |
 | `json-canvas` | Create and edit JSON Canvas files (.canvas) with nodes, edges, groups, and connections. Use when working with .canvas files, creating visual |
 | `karpathy-coding` | Behavioral guidelines to reduce common LLM coding mistakes , think before coding, simplicity first, surgical changes, and goal-driven execut |
 | `launch-token` | Guide a developer through launching a token on Solana. Use when a user says "launch a token", "create a token", "pump.fun", "bonding curve", |
@@ -175,6 +179,8 @@ Copied into `skills/` from their authors' repos. To get the latest version, inst
 | `agent-reach` | [Panniantong/Agent-Reach](https://github.com/Panniantong/Agent-Reach) |
 | `algorithmic-art` | [anthropics/skills](https://github.com/anthropics/skills) |
 | `alibabacloud-tech-solution-animation-creation-auto-deploy` | [aliyun/alibabacloud-aiops-skills](https://github.com/aliyun/alibabacloud-aiops-skills) |
+| `anatomy` | [wheresryan22/anatomy](https://github.com/wheresryan22/anatomy) |
+| `anatomy-reveal` | [annnguyentt/anatomy-reveal-skill](https://github.com/annnguyentt/anatomy-reveal-skill) |
 | `animate` | [pbakaus/impeccable](https://github.com/pbakaus/impeccable) |
 | `archify` | [tt-a1i/archify](https://github.com/tt-a1i/archify) |
 | `architecture-decision-records` | [wshobson/agents](https://github.com/wshobson/agents) |
