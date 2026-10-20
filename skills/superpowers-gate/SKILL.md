@@ -9,9 +9,11 @@ Pick the lightest route that fits, say the route in one line, then follow it. Fu
 
 ## Rules for every route
 
-- **TDD only when asked.** Do not invoke `tdd` or `superpowers:test-driven-development` unless the user asks or a ticket says `TDD: yes`. Check work with the typecheck during the work and the full checks at the end.
+- **TDD only when asked.** Do not invoke `tdd` or `superpowers:test-driven-development` unless the user asks or a ticket says `TDD: yes`.
+- **TDD does not mean checking every ticket.** Write the failing test first, then the code, but do not build, typecheck or run tests per ticket or per task. Run the full checks once at the end, fix the failures, then re-run once. Per-ticket runs burn the user's usage limit.
 - **No worktrees.** Work in the current folder on one branch. A worktree means a fresh `node_modules` install, which the user does not want. Skip `superpowers:using-git-worktrees` and any worktree step in other skills.
 - **One committer.** Only the main agent runs git. Subagents edit files and report back; two agents running git in one folder corrupt each other's commits.
+- **Every question has options and a pick.** Any question to the user, in any skill this gate routes to, comes with 2–4 concrete options (one plain line each), room to answer in their own words, and your recommended option marked with one line on why. This overrides skills that ask bare open questions (superpowers 7.0.0 brainstorming): keep the open question, add the options. Prefer `AskUserQuestion` when a picker fits; it adds "Other" for free text.
 - **UI work goes to `impeccable-gate`.** When a task or ticket is about how a page or component looks or feels, invoke `impeccable-gate` for that part.
 
 ## Pick the route
@@ -26,7 +28,7 @@ Unsure between Direct and Feature: ask the user one question with both options a
 
 ## Feature steps
 
-1. **Brainstorm.** Invoke `superpowers:brainstorming`. It writes the spec to `docs/superpowers/specs/`.
+1. **Brainstorm.** Invoke `superpowers:brainstorming`. It writes the spec to `docs/superpowers/specs/`. Its open questions follow the options-and-pick rule above, so the user can pick, correct or write their own, then go back and forth until it is settled.
 2. **Plan.** Invoke `superpowers:writing-plans`. For each task, also write which other tasks it waits for, so the plan can become tickets later.
 3. **Choose the build.** Tell the user which build fits and why, in two lines, then wait for their pick:
    - **Normal:** the user stays in the loop. Invoke `superpowers:subagent-driven-development` (tasks one after another). Use `superpowers:executing-plans` instead if the user wants to build inline.
